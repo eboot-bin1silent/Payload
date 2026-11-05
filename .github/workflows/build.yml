@@ -1,24 +1,25 @@
-name: Build PS4 Payload
+GNU nano 8.7.1                           build.yml
+name: 'Build with PS4 Payload SDK'
+description: 'Builds a project using the PS4 Payload SDK Docker image'
+inputs:
+  app_path:
+    description: 'Relative path to the application to build'
+    required: true
+  build_command:
+    description: 'Build command to run inside the container'
+    required: false
+    default: 'make'
+runs:
+  using: 'composite'
+  steps:
+    - name: Build Docker image for SDK
+      run: docker build -t ps4sdk -f ${{ github.action_path }}/Dockerfile ${{ github.acti>
+      shell: bash
 
-on: [push]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Compile Payload Directly
-        run: |
-          # ترجمة ملف الـ C مباشرة وتحويله إلى باينري بصيغة bin
-          clang -target x86_64-pc-none-elf -ffreestanding -nostdlib -c main.c -o main.o
-          ld.lld -T linker.x --oformat binary main.o -o custom_payload.bin
-
-      - name: Upload Binary Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: custom-payload
-          path: "*.bin"
+    - name: Build application inside SDK container
+      run: |
+        docker run --rm \
+          -v "$GITHUB_WORKSPACE/${{ inputs.app_path }}":/app \
+          -w /app \
+          ps4sdk ${{ inputs.build_command }}
+      shell: bash
