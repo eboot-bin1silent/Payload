@@ -11,14 +11,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Build Tools
+      - name: Compile Payload Directly
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential clang binutils
-
-      - name: Compile Payload
-        run: |
-          make
+          # ترجمة ملف الـ C مباشرة وتحويله إلى باينري بصيغة bin
+          clang -target x86_64-pc-none-elf -ffreestanding -nostdlib -c main.c -o main.o
+          ld.lld -T linker.x --oformat binary main.o -o custom_payload.bin
 
       - name: Upload Binary Artifact
         uses: actions/upload-artifact@v4
