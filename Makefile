@@ -1,14 +1,29 @@
-TARGET = custom_payload
-OBJS = main.o
+  GNU nano 8.7.1                            Makefile                            Modified
+CC      := gcc
+AR      := ar
+ODIR    := build
+SDIR    := source
+IDIR    := include
+CFLAGS  := -I$(IDIR) -Os -std=c11 -ffunction-sections -fdata-sections -fno-builtin -nosta>
+CFILES  := $(wildcard $(SDIR)/*.c)
+SFILES  := $(wildcard $(SDIR)/*.s)
+OBJS    := $(patsubst $(SDIR)/%.c, build/%.o, $(CFILES)) $(patsubst $(SDIR)/%.s, build/%.>
 
-CFLAGS = -Os -std=c11 -ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nostdlib
-LDFLAGS = -T linker.x -nostdlib -nodefaultlibs
+TARGET = libPS4.a
 
-all: $(TARGET).bin
+$(TARGET): $(ODIR) $(OBJS)
+        $(AR) rcs $@ $(OBJS)
 
-$(TARGET).bin: $(OBJS)
-	ld $(LDFLAGS) -o $(TARGET).elf $(OBJS)
-	objcopy -O binary $(TARGET).elf $(TARGET).bin
+$(ODIR)/%.o: $(SDIR)/%.c
+        $(CC) -c -o $@ $< $(CFLAGS)
+
+$(ODIR)/%.o: $(SDIR)/%.s
+        $(CC) -c -o $@ $< $(CFLAGS)
+
+$(ODIR):
+        @mkdir $@
+
+.PHONY: clean
 
 clean:
-	rm -f *.bin *.elf *.o
+        rm -rf $(TARGET) $(ODIR)
